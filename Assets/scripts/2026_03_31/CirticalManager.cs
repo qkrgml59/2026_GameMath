@@ -26,7 +26,7 @@ public class CirticalManager : MonoBehaviour
         if(currentRate > targetRate && (float)critHits/ totalHits>= targetRate)
         {
             Debug.Log("NormalHit! (Forced)");
-            return true;      //치명타가 발생하지 않더라도 여전히 더 ㄴ ㅗㅍ다면 무조건 발생시키지 않음
+            return false;      //치명타가 발생하지 않더라도 여전히 더 높다면 무조건 발생시키지 않음
         }
 
         if(Random.value<targetRate)
