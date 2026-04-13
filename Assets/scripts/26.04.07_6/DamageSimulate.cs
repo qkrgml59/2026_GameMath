@@ -88,46 +88,58 @@ public class DamageSimulate : MonoBehaviour
     {
         totalDamage = 0;
         attackCount = 0;
+        critCount = 0;
+        wellCount = 0;
+        nullCont = 0;
+        MaxDamage = 0;
 
-        bool isCrit = Random.value < critRate;
-        float finalDamage = 0;
 
-      for (int i = 0; i< 1000; i++)
+        for (int i = 0; i < 1000; i++)
         {
             float sd = baseDamage * stdDevMult;
             float normalDamage = GetNormalStdDevDamage(baseDamage, sd);
 
+            float finalDamage = 0;
+            bool isCrit = false;
+
+            // 약점 공격
             if (normalDamage > baseDamage + sd * 2)
             {
-                normalDamage += baseDamage * 2;
-                attackCount++;
+                finalDamage = normalDamage + baseDamage * 2;
                 wellCount++;
-                totalDamage += finalDamage;
-                Debug.Log("약점공격 성공");
             }
-            else if(normalDamage > baseDamage - sd * 2)
+            // 명중 실패
+            else if (normalDamage < baseDamage - sd * 2)
             {
-                normalDamage = 0;
-                attackCount++;
+                finalDamage = 0;
                 nullCont++;
-                totalDamage += finalDamage;
-                Debug.Log("명중 실패");
             }
-            else 
+            // 일반 공격
+            else
             {
-                OnAttack();
-                Debug.Log("일반 공격 성공");
+                isCrit = Random.value < critRate;
+
+                if (isCrit)
+                {
+                    finalDamage = normalDamage * critMult;
+                    critCount++;
+                }
+                else
+                {
+                    finalDamage = normalDamage;
+                }
             }
 
+            attackCount++;
             totalDamage += finalDamage;
 
-            string cirtMark = isCrit ? "<color=red>[치명타!]</color>" : "";
-            logDisplay.text = string.Format("{0}데미지 : {1:F1}", cirtMark, finalDamage);
-            DamageText.text = string.Format("약점 공격 횟수 : {0} / 명중 실패 횟수 {1}",
-               wellCount, nullCont);
-            TotalCritDamage.text = string.Format("");
-            UpdateUI();
+            if (finalDamage > MaxDamage)
+                MaxDamage = finalDamage;
+
         }
+
+        UpdateUI();
+        UpdateResultUI();
     }
 
     public void UpdateUI()
@@ -145,6 +157,21 @@ public class DamageSimulate : MonoBehaviour
 
 
 
+    }
+
+    private void UpdateResultUI()
+    {
+        DamageText.text = string.Format(
+            "약점 공격 횟수 : {0}\n명중 실패 횟수 : {1}",
+            wellCount, nullCont);
+
+        TotalCritDamage.text = string.Format(
+            "크리티컬 횟수 : {0}",
+            critCount);
+
+        MaxDamageText.text = string.Format(
+            "최대 데미지 : {0:F1}",
+            MaxDamage);
     }
 
     private float GetNormalStdDevDamage(float mean, float stdDev)
